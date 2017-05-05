@@ -20,13 +20,16 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter {
      */
     private static final String TAG = RecyclerViewAdapter.class.getSimpleName();
 
-
-    private Context context;
+    /**
+     * params
+     */
+    private Context mContext;
     private ArrayList<DataModel> lists = new ArrayList<>();
-
+    private LayoutInflater mLayoutInflater;
 
     public RecyclerViewAdapter(Context context){
-        this.context = context;
+        this.mContext = context;
+        mLayoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     public void addAll(ArrayList<DataModel> models){
@@ -46,15 +49,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter {
         RecyclerView.ViewHolder holder = null;
         switch (viewType){
             case 1:
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_headerview, parent, false);
+                view = mLayoutInflater.inflate(R.layout.listitem_headerview, parent, false);
                 holder = new HeaderViewHolder(view);
                 break;
             case 2:
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_footview, parent, false);
+                view = mLayoutInflater.inflate(R.layout.listitem_footview, parent, false);
                 holder = new FootViewHolder(view);
                 break;
             case 3:
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_midview, parent, false);
+                view = mLayoutInflater.inflate(R.layout.listitem_midview, parent, false);
                 holder = new MidViewHolder(view);
                 break;
         }
