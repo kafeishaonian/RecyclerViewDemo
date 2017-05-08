@@ -9,12 +9,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 
+import com.zhihu.client.ui.RecyclerListView;
+
 import java.util.ArrayList;
 
 /**
  * Created by hongmingwei on 2017/5/4 0004.
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements RecyclerListView.LoadingListener {
     /**
      * TAG
      */
@@ -23,6 +25,7 @@ public class MainActivity extends Activity {
      * View
      */
     private RecyclerView mRecycler;
+    private RecyclerListView recycler;
     private Button mButton;
 
     /**
@@ -31,6 +34,7 @@ public class MainActivity extends Activity {
     private LinearLayoutManager manager;
     private ArrayList<DataModel> list = new ArrayList<>();
     private RecyclerViewAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +47,25 @@ public class MainActivity extends Activity {
 
 
     private void initView(){
-        mRecycler = (RecyclerView) findViewById(R.id.recycler);
+
+        recycler = (RecyclerListView) findViewById(R.id.recycler_view);
+
+//        mRecycler = (RecyclerView) findViewById(R.id.recycler);
         mButton = (Button) findViewById(R.id.button);
     }
 
     private void initListener(){
-        mRecycler.setHasFixedSize(true);
-        manager = new LinearLayoutManager(this);
-        manager.setOrientation(OrientationHelper.VERTICAL);
-        mRecycler.setLayoutManager(manager);
+//        mRecycler.setHasFixedSize(true);
+//        manager = new LinearLayoutManager(this);
+//        manager.setOrientation(OrientationHelper.VERTICAL);
+//        mRecycler.setLayoutManager(manager);
+
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+        recycler.setLoadingListener(this);
+
 
         adapter = new RecyclerViewAdapter(this);
-        mRecycler.setAdapter(adapter);
+        recycler.setAdapter(adapter);
 
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,4 +99,13 @@ public class MainActivity extends Activity {
     }
 
 
+    @Override
+    public void onRefresh() {
+        recycler.refreshComplete();
+    }
+
+    @Override
+    public void onLoadMore() {
+        recycler.loadMoreComplete();
+    }
 }
