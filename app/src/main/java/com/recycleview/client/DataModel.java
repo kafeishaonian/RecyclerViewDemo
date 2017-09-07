@@ -1,4 +1,4 @@
-package com.zhihu.client;
+package com.recycleview.client;
 
 /**
  * Created by hongmingwei on 2017/5/4 0004.

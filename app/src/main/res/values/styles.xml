@@ -8,4 +8,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!--下拉刷新-->
+    <style name="ProgressLarge" parent="@android:attr/progressBarStyleLarge">
+        <item name="android:layout_width">54dp</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:indeterminate">true</item>
+        <item name="android:indeterminateDrawable">@drawable/progressbar_large</item>
+    </style>
+    
 </resources>

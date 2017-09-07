@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.zhihu.client.MainActivity">
+    android:layout_height="match_parent">
 
-    <!--<android.support.v7.widget.RecyclerView-->
-        <!--android:id="@+id/recycler"-->
+    <com.recycleview.client.ui.RecyclerListView
+        android:id="@+id/listView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:cacheColorHint="@color/transparent"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:fadingEdge="none"
+        android:listSelector="@color/transparent"
+        android:scrollbars="none" />
+
+    <!--<LinearLayout-->
+        <!--android:id="@+id/msg_parent"-->
         <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"/>-->
-
-    <com.zhihu.client.ui.RecyclerListView
-        android:id="@+id/recycler_view"
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="top"-->
+        <!--android:orientation="vertical" />-->
+    <com.recycleview.client.ui.ErrorView
+        android:id="@+id/maskView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:background="@color/transparent" />
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="添加一个MidView"/>
 </RelativeLayout>

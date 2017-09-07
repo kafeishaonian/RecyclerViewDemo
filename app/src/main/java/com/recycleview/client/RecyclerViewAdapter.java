@@ -1,9 +1,7 @@
-package com.zhihu.client;
+package com.recycleview.client;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +32,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter {
 
     public void addAll(ArrayList<DataModel> models){
         lists.clear();
+        lists.addAll(models);
+        notifyDataSetChanged();
+    }
+
+    public void addMore(ArrayList<DataModel> models){
         lists.addAll(models);
         notifyDataSetChanged();
     }
