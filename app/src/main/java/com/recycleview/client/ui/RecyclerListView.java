@@ -8,9 +8,12 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 
@@ -20,6 +23,7 @@ import java.util.ArrayList;
  */
 
 public class RecyclerListView extends RecyclerView {
+    private static final String TAG = RecyclerListView.class.getSimpleName();
 
     private Context mContext;
     private ArrayList<View> mHeaderViews = new ArrayList<>();//传入的头文件列表
@@ -31,7 +35,6 @@ public class RecyclerListView extends RecyclerView {
     private LoadingRefreshListener mLoadingRefreshListener;//滑动监听
     private LoadingLoadMoreListener mLoadingLoadMoreListener;
     private static final float DRAG_RATE = 3;//滑动阻率
-
 
     private boolean pullRefreshEnabled = true;//刷新状态
     private boolean loadingMoreEnabled = true;//上拉状态
@@ -55,9 +58,9 @@ public class RecyclerListView extends RecyclerView {
         initView(context);
     }
 
-    private void initView(Context context){
+    private void initView(Context context) {
         mContext = context;
-        if (pullRefreshEnabled){
+        if (pullRefreshEnabled) {
             RecyclerViewHeader recyclerViewHeader = new RecyclerViewHeader(mContext);
             mHeaderViews.add(0, recyclerViewHeader);
             mHeader = recyclerViewHeader;
@@ -68,22 +71,32 @@ public class RecyclerListView extends RecyclerView {
 
     /**
      * 添加头文件的时候，判断有没有刷新头
-     * @param view
      */
-    public void addHeaderView(View view){
-        if (pullRefreshEnabled && !(mHeaderViews.get(0) instanceof RecyclerViewHeader)){
-            RecyclerViewHeader recyclerViewHeader = new RecyclerViewHeader(mContext);
-            mHeaderViews.add(0, recyclerViewHeader);
-            mHeader = recyclerViewHeader;
+    public void addHeaderView() {
+//        if (pullRefreshEnabled && !(mHeaderViews.get(0) instanceof RecyclerViewHeader)){
+//            RecyclerViewHeader recyclerViewHeader = new RecyclerViewHeader(mContext);
+//            mHeaderViews.add(0, recyclerViewHeader);
+//            mHeader = recyclerViewHeader;
+//        }
+//        mHeaderViews.add(view);
+        mHeader.onMove(800 / DRAG_RATE);
+        if (mHeader.releaseAction()) {
+            if (mLoadingRefreshListener != null) {
+                mLoadingRefreshListener.onRefresh();
+                previousTotal = 0;
+            }
         }
-        mHeaderViews.add(view);
     }
 
     /**
      * 上拉加载完成后，隐藏上拉加载布局
      */
-    public void loadMoreComplete(){
-        if (previousTotal < getLayoutManager().getItemCount()){
+    public void loadMoreComplete() {
+        Log.e(TAG, "loadMoreComplete: ========" + getLayoutManager().getItemCount());
+        if (previousTotal <= getLayoutManager().getItemCount()) {
+//            ViewGroup.LayoutParams params = mFooter.getLayoutParams();
+//            params.height = 0;
+//            mFooter.setLayoutParams(params);
             mFooter.setState(RecyclerViewFooter.STATE_COMPLETE);
         }
         previousTotal = getLayoutManager().getItemCount();
@@ -92,12 +105,13 @@ public class RecyclerListView extends RecyclerView {
     /**
      * 下拉刷新完成后的，隐藏下拉加载布局
      */
-    public void refreshComplete(){
+    public void refreshComplete() {
         mHeader.refreshComplate();
     }
 
     /**
      * 设置是否可以刷新
+     *
      * @param enabled
      */
     public void setPullRefreshEnabled(boolean enabled) {
@@ -110,7 +124,8 @@ public class RecyclerListView extends RecyclerView {
     public void setLoadingMoreEnabled(boolean enabled) {
         loadingMoreEnabled = enabled;
         if (!enabled) {
-            mFooter.setVisibility(GONE);
+//            mFooter.setVisibility(GONE);
+            mFooter.setState(RecyclerViewFooter.STATE_COMPLETE);
         }
     }
 
@@ -123,8 +138,16 @@ public class RecyclerListView extends RecyclerView {
         mAdapter.registerAdapterDataObserver(mDataObserver);
     }
 
+
+//    @Override
+//    public void onScrolled(int dx, int dy) {
+//        super.onScrolled(dx, dy);
+//        Log.e("TAG", "啦啦啦" + dx + "=========" + dy);
+//    }
+
     /**
      * 监听活动，是否滑动到最低，用来加载
+     *
      * @param state
      */
     @Override
@@ -142,20 +165,28 @@ public class RecyclerListView extends RecyclerView {
             } else {   //剩下只有线性布局（listview）中lastVisibleItemPosition的取值
                 lastVisibleItemPosition = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition();
             }
+            Log.e(TAG, "onScrollStateChanged: =============" + layoutManager.getItemCount() + "========"
+                    + lastVisibleItemPosition + "========" + layoutManager.getItemCount() + "==========" + mHeader.getState());
             if (layoutManager.getChildCount() > 0
-                    && lastVisibleItemPosition >= layoutManager.getItemCount() - 1 && layoutManager.getItemCount() > layoutManager.getChildCount()
+                    && lastVisibleItemPosition >= layoutManager.getItemCount() - 2 && layoutManager.getItemCount() > layoutManager.getChildCount()
                     && mHeader.getState() < RecyclerViewHeader.STATE_REFRESHING) {
+                Log.e(TAG, "onScrollStateChanged: ==============");
 
+//                ViewGroup.LayoutParams params = mFooter.getLayoutParams();
+//                params.height = 140;
+//                mFooter.setLayoutParams(params);
+//                this.setPadding(0, 0, 0, 140);
                 mFooter.setState(RecyclerViewFooter.STATE_LOADING);
-
                 mLoadingLoadMoreListener.onLoadMore();
             }
         }
     }
 
+
     /**
      * 监听手势活动  判断有没有到顶，用于刷新
      */
+    private float mFooterY = -1;
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         if (mLastY == -1) {
@@ -164,16 +195,23 @@ public class RecyclerListView extends RecyclerView {
         switch (e.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mLastY = e.getRawY();
+                mFooterY = e.getRawY();
                 break;
             case MotionEvent.ACTION_MOVE:
                 final float deltaY = e.getRawY() - mLastY;
                 mLastY = e.getRawY();
+//                Log.e(TAG, "onTouchEvent: =============" + mLastY);
                 if (isOnTop() && pullRefreshEnabled) {
                     mHeader.onMove(deltaY / DRAG_RATE);
                     if (mHeader.getVisiableHeight() > 0 && mHeader.getState() < RecyclerViewHeader.STATE_REFRESHING) {
                         Log.i("getVisiableHeight", "getVisiableHeight = " + mHeader.getVisiableHeight());
                         Log.i("getVisiableHeight", " mHeader.getState() = " + mHeader.getState());
                         return false;
+                    }
+                }
+                if (e.getRawY() - mFooterY < -10){
+                    if (initFoolter()) {
+                        mFooter.move((int) (deltaY / DRAG_RATE));
                     }
                 }
                 break;
@@ -192,16 +230,41 @@ public class RecyclerListView extends RecyclerView {
         return super.onTouchEvent(e);
     }
 
+    private boolean initFoolter(){
+        if (mLoadingLoadMoreListener != null && loadingMoreEnabled) {
+            LayoutManager layoutManager = getLayoutManager();
+            int lastVisibleItemPosition;  //最后可见的Item的position的值
+            if (layoutManager instanceof GridLayoutManager) {   //网格布局的中lastVisibleItemPosition的取值
+                lastVisibleItemPosition = ((GridLayoutManager) layoutManager).findLastVisibleItemPosition();
+            } else if (layoutManager instanceof StaggeredGridLayoutManager) {//瀑布流布局中lastVisibleItemPosition的取值
+                int[] into = new int[((StaggeredGridLayoutManager) layoutManager).getSpanCount()];
+                ((StaggeredGridLayoutManager) layoutManager).findLastVisibleItemPositions(into);
+                lastVisibleItemPosition = findMax(into);
+            } else {   //剩下只有线性布局（listview）中lastVisibleItemPosition的取值
+                lastVisibleItemPosition = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition();
+            }
+            Log.e(TAG, "onScrollStateChanged: =============" + layoutManager.getItemCount() + "========"
+                    + lastVisibleItemPosition + "========" + layoutManager.getItemCount() + "==========" + mHeader.getState());
+            if (layoutManager.getChildCount() > 0
+                    && lastVisibleItemPosition >= layoutManager.getItemCount() - 2 && layoutManager.getItemCount() > layoutManager.getChildCount()
+                    && mHeader.getState() < RecyclerViewHeader.STATE_REFRESHING) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * 判断是不是在顶部
+     *
      * @return
      */
-    private boolean isOnTop(){
-        if (mHeaderViews == null || mHeaderViews.isEmpty()){
+    private boolean isOnTop() {
+        if (mHeaderViews == null || mHeaderViews.isEmpty()) {
             return false;
         }
         View view = mHeaderViews.get(0);
-        if (view.getParent() != null){
+        if (view.getParent() != null) {
             return true;
         } else {
             return false;
@@ -211,13 +274,14 @@ public class RecyclerListView extends RecyclerView {
 
     /**
      * 流瀑布里面用到的计算公式
+     *
      * @param lastPositions
      * @return
      */
-    private int findMax(int[] lastPositions){
+    private int findMax(int[] lastPositions) {
         int max = lastPositions[0];
-        for (int value : lastPositions){
-            if (value > max){
+        for (int value : lastPositions) {
+            if (value > max) {
                 max = value;
             }
         }
@@ -375,7 +439,6 @@ public class RecyclerListView extends RecyclerView {
                 return TYPE_FOOTER;
             }
             int adjPosition = position - getHeadersCount();
-            ;
             int adapterCount;
             if (adapter != null) {
                 adapterCount = adapter.getItemCount();
@@ -416,26 +479,29 @@ public class RecyclerListView extends RecyclerView {
             public SimpleViewHolder(View itemView) {
                 super(itemView);
             }
+
         }
     }
 
+
     /**
      * 监听接口
+     *
      * @param listener
      */
-    public void setLoadingRefreshListener(LoadingRefreshListener listener){
+    public void setLoadingRefreshListener(LoadingRefreshListener listener) {
         mLoadingRefreshListener = listener;
     }
 
-    public void setLoadingLoadMoreListener(LoadingLoadMoreListener listener){
+    public void setLoadingLoadMoreListener(LoadingLoadMoreListener listener) {
         mLoadingLoadMoreListener = listener;
     }
 
-    public interface LoadingRefreshListener{
+    public interface LoadingRefreshListener {
         void onRefresh();
     }
 
-    public interface LoadingLoadMoreListener{
+    public interface LoadingLoadMoreListener {
         void onLoadMore();
     }
 

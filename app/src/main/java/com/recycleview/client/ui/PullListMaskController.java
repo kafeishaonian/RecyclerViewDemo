@@ -182,7 +182,7 @@ public class PullListMaskController {
             case LIST_REFRESHING_AND_REFRESH:{
                 mErrorView.setVisibility(View.GONE);
                 mListView.setVisibility(View.VISIBLE);
-//                mListView.addHeaderView();
+                mListView.addHeaderView();
             }
         }
     }

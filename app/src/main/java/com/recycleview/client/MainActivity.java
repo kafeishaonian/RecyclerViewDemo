@@ -1,13 +1,19 @@
 package com.recycleview.client;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.View;
 
+import com.recycleview.client.adapter.RecyclerViewAdapter;
+import com.recycleview.client.model.DataModel;
 import com.recycleview.client.ui.ErrorView;
 import com.recycleview.client.ui.PullListMaskController;
 import com.recycleview.client.ui.RecyclerListView;
@@ -53,13 +59,25 @@ public class MainActivity extends AppCompatActivity {
         mController = new PullListMaskController(mLsitView, mErrorView);
 
         mLsitView.setLayoutManager(new LinearLayoutManager(this));
+//        mLsitView.setLayoutManager(new GridLayoutManager(this, 2));
+//        mLsitView.setLayoutManager(new StaggeredGridLayoutManager(2, RecyclerView.VERTICAL));
         adapter = new RecyclerViewAdapter(this);
         mLsitView.setAdapter(adapter);
+
+        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, Main3Activity.class));
+                //首次加载
+//                mController.showViewStatus(PullListMaskController.ListViewState.LIST_REFRESHING_AND_REFRESH);
+            }
+        });
     }
 
     private void initListener(){
         //首次加载
         mController.showViewStatus(PullListMaskController.ListViewState.EMPTY_LOADING);
+//        mController.showViewStatus(PullListMaskController.ListViewState.LIST_NO_MORE);
         //下拉刷新
         mController.setOnRefreshListener(new RecyclerListView.LoadingRefreshListener() {
             @Override
@@ -105,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             Thread.sleep(1000);
             //headerView数据
-            mController.showViewStatus(PullListMaskController.ListViewState.LIST_NORMAL_HAS_MORE);
+            Log.e(TAG, "initData: ==============");
+            list.clear(); // 10条
             list.add(new DataModel(1, "张三"));
             list.add(new DataModel(1, "李四"));
             list.add(new DataModel(1, "王五"));
@@ -117,9 +136,14 @@ public class MainActivity extends AppCompatActivity {
             list.add(new DataModel(1, "小二"));
             list.add(new DataModel(1, "小三"));
 
+            list.add(new DataModel(3, "张三", "我是标题一", "我是标题一"));
+            list.add(new DataModel(3, "李四", "我是标题二", "我是标题一"));
+            list.add(new DataModel(3, "王五", "我是标题三", "我是标题一"));
+
             list.add(new DataModel(2, "小二", "我是标题二"));
             list.add(new DataModel(2, "小三", "我是标题三"));
             adapter.addAll(list);
+            mController.showViewStatus(PullListMaskController.ListViewState.LIST_NORMAL_HAS_MORE);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -131,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             //请求接口
             mController.showViewStatus(PullListMaskController.ListViewState.LIST_REFRESH_COMPLETE);
+            initData();
         }
     };
 
@@ -168,18 +193,18 @@ public class MainActivity extends AppCompatActivity {
             //footView数据
             try {
                 Thread.sleep(1000);
-                mController.showViewStatus(PullListMaskController.ListViewState.LIST_NORMAL_HAS_MORE);
-                list.clear();
-                list.add(new DataModel(2, "张三", "我是标题一"));
-                list.add(new DataModel(2, "李四", "我是标题二"));
-                list.add(new DataModel(2, "王五", "我是标题三"));
-
-                list.add(new DataModel(1, "小二"));
-                list.add(new DataModel(1, "小三"));
-
-                list.add(new DataModel(2, "小二", "我是标题二"));
-                list.add(new DataModel(2, "小三", "我是标题三"));
-                adapter.addMore(list);
+                mController.showViewStatus(PullListMaskController.ListViewState.LIST_NO_MORE);
+//                list.clear(); //7
+//                list.add(new DataModel(2, "张三", "我是标题一"));
+//                list.add(new DataModel(2, "李四", "我是标题二"));
+//                list.add(new DataModel(2, "王五", "我是标题三"));
+//
+//                list.add(new DataModel(1, "小二"));
+//                list.add(new DataModel(1, "小三"));
+//
+//                list.add(new DataModel(2, "小二", "我是标题二"));
+//                list.add(new DataModel(2, "小三", "我是标题三"));
+//                adapter.addMore(list);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
